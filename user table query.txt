@@ -50,3 +50,34 @@ CREATE TABLE `spring_mvc`.`users` (
   `address` VARCHAR(45) NULL,
   `phone` INT NULL,
   PRIMARY KEY (`username`));
+
+
+
+
+pattaern
+
+public class Patternnn {
+
+    public static void main(String[] args) {  
+        int space=5;
+        
+        for(int i=1;i<=4;i++){
+            
+            for(int j=1;j<=i;j++)
+              
+                System.out.print("*");
+                
+            for(int j=1;j<=space;j++)
+                
+                System.out.print(" ");
+            
+                for(int j=1;j<=i;j++)
+                    if(j!=4){
+                        System.out.print("*");
+                    }
+                    System.out.println();
+                    space=space-2;
+               
+    }
+}
+}
