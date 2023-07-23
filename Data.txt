@@ -1,0 +1,700 @@
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+  <display-name>Archetype Created Web Application</display-name>
+  
+  <servlet>  
+    <servlet-name>spring</servlet-name>  
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>  
+    <load-on-startup>1</load-on-startup>    
+</servlet>  
+<servlet-mapping>  
+    <servlet-name>spring</servlet-name>  
+    <url-pattern>/</url-pattern>  
+</servlet-mapping>  
+</web-app>
+--------
+
+
+
+
+
+
+Spring_servlet
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd 
+     http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx.xsd   
+    ">
+	<tx:annotation-driven />
+
+	<context:component-scan
+		base-package="productcrudapp" />
+
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+		name="viewResolver">
+		<property name="prefix" value="/WEB-INF/views/" />
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+
+
+<!-- data source -->
+
+	<bean
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource"
+		name="ds">
+
+		<property name="driverClassName"
+			value="com.mysql.jdbc.Driver" />
+		<property name="url"
+			value="jdbc:mysql://localhost:3306/productcrud" />
+		<property name="username" value="root" />
+		<property name="password" value="" />
+
+	</bean>
+<!-- LocalSessionFactoryBean -->
+
+
+
+	<bean
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean"
+		name="factory">
+
+		<!-- data source -->
+		<property name="dataSource" ref="ds"></property>
+
+		<!-- hibernate properties -->
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+
+		<!-- annotated classes -->
+		<property name="annotatedClasses">
+			<list>
+			 	<value>productcrudapp.model.Product</value>  
+			</list>
+		</property>
+
+	</bean>
+
+
+	<bean class="org.springframework.orm.hibernate5.HibernateTemplate"
+		name="hibernateTemplate">
+		<property name="sessionFactory" ref="factory"></property>
+
+	</bean>
+
+
+	<bean
+		class="org.springframework.orm.hibernate5.HibernateTransactionManager"
+		name="transactionManager">
+		<property name="sessionFactory" ref="factory"></property>
+	</bean>
+	
+
+</beans>
+
+------
+
+
+
+3
+
+POM
+
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.crud</groupId>
+  <artifactId>StudentCrud</artifactId>
+  <packaging>war</packaging>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>StudentCrud Maven Webapp</name>
+  <url>http://maven.apache.org</url>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+     <dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-webmvc</artifactId>
+    <version>5.2.20.RELEASE</version>
+</dependency>
+    
+    <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
+<dependency>
+    <groupId>org.hibernate</groupId>
+    <artifactId>hibernate-core</artifactId>
+    <version>5.4.25.Final</version>
+</dependency>
+    
+    <!-- https://mvnrepository.com/artifact/org.springframework/spring-orm -->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-orm</artifactId>
+    <version>5.2.20.RELEASE</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>5.1.30</version>
+</dependency>
+<dependency>
+    <groupId>jstl</groupId>
+    <artifactId>jstl</artifactId>
+    <version>1.2</version>
+</dependency>
+  </dependencies>
+  <build>
+    <finalName>StudentCrud</finalName>
+  </build>
+</project>
+------
+
+4
+
+
+
+
+ADD Student
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<%@include file="./base.jsp"%>
+<title>Insert title here</title>
+</head>
+<body>
+	<div class="container mt-3 ">
+		<div class="row">
+			<div class="col-md-6  offset-md-3">
+				<h1 class="" text-center>Fill Form Details</h1>
+				<form action="handle-student" method="post">
+					<div class="form-group">
+						<label for="name">Name</label> <input type="name"
+							class="form-control" id="name" 
+							name="name" placeholder="Enter name" aria-describedby="inputGroupPrepend" required >
+					</div>
+					 <div class="form-group">
+			<label for="fee">Fee</label> <input type="fee"
+				class="form-control" id="fee" aria-describedby="inputGroupPrepend" required name="fee"
+				placeholder="Enter Fee">
+		</div>  
+		
+				<!-- 	<div class="form-group">
+						<label for="detail">Detail</label> <input type="name"
+							class="form-control" id="detail" aria-describedby="inputGroupPrepend" required
+							name="detail" placeholder="Enter Detail">
+					</div>
+					 -->
+					 
+					<div class="input-group mb-3">
+						<div class="col-md-6">Select Detail</div>
+							<input type="radio" aria-describedby="inputGroupPrepend" required name="detail" value="male" />Male <input
+								type="radio" aria-describedby="inputGroupPrepend" required name="detail" value="female" />Female
+								
+					</div>
+			 
+			<div class="container text-center">
+				<a href="${pageContext.request.contextPath }/"
+					class="btn btn-outline-danger">Back</a>
+
+				<button type="submit" class="btn btn-primary">Submit</button>
+			</div>
+			</form>
+		</div>
+	</div>
+	</div>
+</body>
+</html>
+
+----
+
+
+
+
+
+5
+
+
+
+Base
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
+	    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	    <%@page isELIgnored="false" %>
+	     <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+	
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+	integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+	crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+	integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+	crossorigin="anonymous"></script>
+<script
+	src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+	integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+	crossorigin="anonymous"></script>
+<script
+	src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+	integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+	crossorigin="anonymous"></script>
+
+<title><c:out value="${title }">Student Crud App</c:out></title>
+
+-----
+
+
+
+
+6
+
+
+
+index
+
+
+<html>
+<head>
+<%@include file="./base.jsp"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+
+</head>
+<body>
+
+	<div class="container mt-3">
+		<div class="row">
+			<div class="col-md-12">
+
+				<h1 class="text-center">Welcome To Student App</h1>
+
+				<table class="table">
+					<thead class="thead-dark">
+						<tr>
+							<th scope="col">ID</th>
+							<th scope="col">Name</th>
+							<th scope="col">Detail</th>
+							<th scope="col">Fee</th>
+							<th scope="col">Action</th>
+
+						</tr>
+					</thead>
+					<tbody>
+						<c:forEach items="${students }" var="s">
+							<tr>
+								<th scope="row">${s.id}</th>
+								<td>${s.name }</td>
+								<td>${s.detail }</td>
+								<td>${s.fee }</td>
+								<td><a href="delete/${s.id }">Delete</a> <a
+									href="update/${s.id }">||Update</a></td>
+							</tr>
+						</c:forEach>
+					</tbody>
+				</table>
+				<div class="container text-center">
+					<a href="add-student" class="btn btn-outline-success">Add
+						Student</a>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+7
+----
+Update
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<%@include file="./base.jsp"%>
+<title>Insert title here</title>
+</head>
+<body>
+		<div class="container mt-3 ">
+			<div class="row">
+				<div class="col-md-6  offset-md-3">
+		<h1 class=""text-center>Change Form Details</h1>		
+	<form action="${pageContext.request.contextPath }/handle-student" method="post">
+	<input type="hidden" value="${student.id }" name="id"/>
+		<div class="form-group">
+			<label for="name">Name</label> <input type="name"
+				class="form-control" id="name" aria-describedby="inputGroupPrepend" required name="name"
+				placeholder="Enter name"
+				value="${student.name }"
+				>
+		</div>
+		<!--  <div class="form-group">
+			<label for="detail">Detail</label> <input type="detail"
+				class="form-control" id="fee" aria-describedby="inputGroupPrepend" required name="detail"
+				placeholder="Enter Detail" 
+				value="${student.detail }">
+		</div> -->
+		
+		
+		<div class="form-group">
+			<label for="fee">Fee</label> <input type="fee"
+				class="form-control" id="fee" aria-describedby="inputGroupPrepend" required name="fee"
+				placeholder="Enter Fee" value="${student.fee }">
+		</div>
+		
+		<div class="input-group mb-3">
+						<div class="col-md-6">Select Detail</div>
+							<input type="radio" aria-describedby="inputGroupPrepend" required name="detail" value="male" />Male <input
+								type="radio" aria-describedby="inputGroupPrepend" required name="detail" value="female" />Female
+								
+					</div>
+		<div class="container text-center"> 
+				<a href="${pageContext.request.contextPath }/"
+				class="btn btn-outline-danger">Back</a>
+		
+		<button type="submit" class="btn btn-warning">Update</button>
+		</div>
+	</form>
+	</div>
+	</div>
+	</div>
+</body>
+</html>
+---
+
+
+8
+
+
+
+
+Main Controller
+
+package productcrudapp.controller;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.view.RedirectView;
+
+import productcrudapp.dao.ProductDao;
+import productcrudapp.model.Product;
+
+@Controller
+public class MainController {
+	@Autowired
+	private ProductDao productDao;
+	
+	@RequestMapping("/")
+	public String home(Model m) {
+		
+		List<Product> products=productDao.getProducts();
+		m.addAttribute("products", products);
+		
+		return "index";
+	}
+	//show add product form
+	@RequestMapping("/add-product")
+	public String addProduct(Model m) {
+		m.addAttribute("title", "Add Product");
+		
+		return "add_product_form";
+	}
+	
+	//handle add product form
+	@RequestMapping(value="/handle-product",method=RequestMethod.POST)
+	public RedirectView handleProduct(@ModelAttribute Product product,HttpServletRequest request) {
+		System.out.println(product);	
+		productDao.createProduct(product);
+		RedirectView redirectView=new RedirectView();
+		redirectView.setUrl(request.getContextPath()+"/");
+		return redirectView;
+	}
+	
+	//delete handler
+	@RequestMapping("/delete/{productId}")
+	public RedirectView deleteProduct(@PathVariable("productId") int productId,HttpServletRequest request) {
+		this.productDao.deleteProduct(productId);
+		RedirectView redirectView=new RedirectView();
+		redirectView.setUrl(request.getContextPath()+"/");
+		return redirectView;
+		
+	}
+	
+	//update hndler
+	@RequestMapping("/update/{productId}")
+	public String updateForm(@PathVariable("productId") int pid,Model model) {
+		
+		Product product=this.productDao.getProduct(pid);
+		model.addAttribute("product", product);
+		return"update_form";
+	}
+}
+
+----
+
+
+
+9
+
+
+
+
+
+
+Product
+
+package productcrudapp.model;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class Product {
+	@Id
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	private int id;
+	private String name;
+	private String description;
+	private long price;
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	public long getPrice() {
+		return price;
+	}
+	public void setPrice(long price) {
+		this.price = price;
+	}
+	public Product(int id, String name, String description, long price) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.description = description;
+		this.price = price;
+	}
+	public Product() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+	@Override
+	public String toString() {
+		return "Product [id=" + id + ", name=" + name + ", description=" + description + ", price=" + price + "]";
+	}
+	
+}
+------
+
+
+
+10
+
+
+
+
+ProductDao
+
+package productcrudapp.dao;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.hibernate5.HibernateTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import productcrudapp.model.Product;
+
+@Component
+public class ProductDao {
+	@Autowired
+	private HibernateTemplate hinernateTemplate;
+	//create
+	@Transactional
+	public void createProduct(Product product) {
+		
+		this.hinernateTemplate.saveOrUpdate(product);
+		
+	}
+	//get all products
+	public List<Product> getProducts(){
+	List<Product> products=this.hinernateTemplate.loadAll(Product.class);
+	return products;
+	}
+	
+	//delete the single product
+	@Transactional
+	public void deleteProduct(int pid) {
+		Product p=this.hinernateTemplate.load(Product.class, pid);
+		this.hinernateTemplate.delete(p);
+	}
+	//get single product
+	public Product getProduct(int pid) {
+		return this.hinernateTemplate.get(Product.class, pid);
+	}
+	
+}
+
+
+
+
+
+id="validationDefault03" required
+
+
+
+
+
+
+
+
+
+
+
+
+new
+
+<div class="dropdown">
+  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Dropdown button
+  </button>
+  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+    <a class="dropdown-item" href="#">Action</a>
+    <a class="dropdown-item" href="#">Another action</a>
+    <a class="dropdown-item" href="#">Something else here</a>
+  </div>
+</div>
+
+
+new
+
+<select class="custom-select" name="description" required>
+						<option selected>Open this select menu</option>
+						<option value="Large">One</option>
+						<option value="drdr">Two</option>
+						<option value="rfrf">Three</option>
+					</select>
+
+
+
+
+
+
+
+
+new
+
+create table users (
+ id  int(3) NOT NULL AUTO_INCREMENT,
+ name varchar(120) NOT NULL,
+ email varchar(220) NOT NULL,
+ country varchar(120),
+ PRIMARY KEY (id)
+);
+
+
+https://www.javaguides.net/2019/03/jsp-servlet-jdbc-mysql-crud-example-tutorial.html
+
+https://www.javaguides.net/2019/06/jsp-servlet-projects-with-source-code-free-download.html
+
+CREATE TABLE `users` (
+  `id` int(3) NOT NULL AUTO_INCREMENT,,
+  `first_name` varchar(20) DEFAULT NULL,
+  `last_name` varchar(20) DEFAULT NULL,
+  `username` varchar(250) DEFAULT NULL,
+  `password` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ;
+
+
+CREATE TABLE `todos` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `description` varchar(255) DEFAULT NULL,
+  `is_done` bit(1) NOT NULL,
+  `target_date` datetime(6) DEFAULT NULL,
+  `username` varchar(255) DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ;
+
+
+
+loginuser
+
+CREATE DATABASE IF NOT EXISTS spring_mvc;
+
+USE spring_mvc;
+
+DROP TABLE IF EXISTS `spring_mvc`.`users`;
+
+CREATE TABLE `spring_mvc`.`users` (
+  `username` VARCHAR(45) NOT NULL,
+  `password` VARCHAR(45) NULL,
+  `firstname` VARCHAR(45) NOT NULL,
+  `lastname` VARCHAR(45) NULL,
+  `email` VARCHAR(45) NULL,
+  `address` VARCHAR(45) NULL,
+  `phone` INT NULL,
+  PRIMARY KEY (`username`));
